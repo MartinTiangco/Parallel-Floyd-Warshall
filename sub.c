@@ -3,32 +3,57 @@
 #include <omp.h>
 #include <string.h>
 
-// int **performFloydWarshall()
-// {
-//     int **distanceMatrix;
-//     return distanceMatrix;
-// }
+#define INF 999
+#define max_int(x, y) (((x) >= (y)) ? (x) : (y))
+#define min_int(x, y) (((x) <= (y)) ? (x) : (y))
 
-// void findRadius(struct Graph *graph)
-// {
-//     // Floyd Warshall on a adjacency matrix, output the shortest distance matrix
+int findRadius(int **matrix, int order)
+{
+    // This is the output matrix
+    // with the shortest distances between every vertex pair
+    int dist[order][order];
 
-//     int radius = INT_MAX;
-//     // for each vertex v
-//     for (int v = 0; v < graph->numVertices; v++)
-//     {
-//         int eccentricity = INT_MIN;
-//         // for each vertex u
-//         for (int u = 0; u < graph->numVertices; u++)
-//         {
-//             eccentricity = max(eccentricity, d(v, u));
-//         }
-//         radius = min(radius, eccentricity);
-//     }
-// }
+    // init with adj matrix values
+    for (int i = 0; i < order; i++)
+        for (int j = 0; j < order; j++)
+            dist[i][j] = matrix[i][j];
+
+    // find shortest distance using intermediate node k
+    for (int k = 0; k < order; k++)
+    {
+        // source vertex i
+        for (int i = 0; i < order; i++)
+        {
+            // dest vertex j
+            for (int j = 0; j < order; j++)
+            {
+                // update dist if path through intermediate vertex k
+                // is shorter
+                if (dist[i][k] + dist[k][j] < dist[i][j])
+                    dist[i][j] = dist[i][k] + dist[k][j];
+            }
+        }
+    }
+
+    int radius = INT_MAX;
+    // for each vertex v
+    for (int v = 0; v < order; v++)
+    {
+        int eccentricity = INT_MIN;
+        // for each vertex u
+        for (int u = 0; u < order; u++)
+            eccentricity = max_int(eccentricity, dist[v][u]);
+
+        radius = min_int(radius, eccentricity);
+    }
+
+    return radius;
+}
 
 int main(int argc, char *argv[])
 {
+    int output[255];
+    int numGraphs = 0;
     char order[2];
     fgets(order, sizeof order, stdin); // read first order
     while (atoi(order) != 0)           // convert char to int
@@ -39,12 +64,23 @@ int main(int argc, char *argv[])
         // before our adjacency list
         getchar();
 
-        int matrix[orderOfGraph][orderOfGraph];
+        // allocate matrix
+        int **matrix;
+        matrix = malloc(orderOfGraph & sizeof *matrix);
+        for (int i = 0; i < orderOfGraph; i++)
+            matrix[i] = malloc(orderOfGraph * sizeof *matrix[i]);
+
+        // init matrix
+        // A vertex v to itself has 0 distance
+        // Otherwise, a large number representing infinite distance
         for (int i = 0; i < orderOfGraph; i++)
         {
             for (int j = 0; j < orderOfGraph; j++)
             {
-                matrix[i][j] = 0;
+                if (i == j)
+                    matrix[i][j] = 0;
+                else
+                    matrix[i][j] = INF;
             }
         }
 
@@ -63,6 +99,7 @@ int main(int argc, char *argv[])
             // walk through other neighbours
             while (token != NULL)
             {
+                // add edge to adjacency matrix
                 int indexOfNeighbour = atoi(token);
                 matrix[i][indexOfNeighbour] = 1;
 
@@ -72,19 +109,26 @@ int main(int argc, char *argv[])
         }
 
         // now we have a graph, we can perform this in parallel
-        // findRadius(graph);
-        for (int i = 0; i < orderOfGraph; i++)
-        {
-            for (int j = 0; j < orderOfGraph; j++)
-            {
-                printf("%d ", matrix[i][j]);
-            }
-            printf("\n");
-        }
+        int radius = findRadius(matrix, orderOfGraph);
+        output[numGraphs] = radius;
 
+        // free memory
+        free(matrix);
+
+        numGraphs++;
+
+        // read next digraph order
         fgets(order, sizeof order, stdin);
     }
 
+    // print results
+    for (int i = 0; i < numGraphs; i++)
+    {
+        if (output[i] == 999)
+            printf("None\n");
+        else
+            printf("%d\n", output[i]);
+    }
     // int nthreads,
     //     tid;
     // {
