@@ -3,89 +3,6 @@
 #include <omp.h>
 #include <string.h>
 
-// A structure to represent an adjacency list node
-struct AdjListNode
-{
-    int dest;
-    struct AdjListNode *next;
-};
-
-// A structure to represent an adjacency list
-struct AdjList
-{
-    struct AdjListNode *head;
-};
-
-// A structure to represent a graph. A graph
-// is an array of adjacency lists.
-// Size of array will be V (number of vertices
-// in graph)
-struct Graph
-{
-    int numVertices;
-    struct AdjList *array;
-};
-
-// A utility function to create a new adjacency list node
-struct AdjListNode *newAdjListNode(int dest)
-{
-    struct AdjListNode *newNode =
-        (struct AdjListNode *)malloc(sizeof(struct AdjListNode));
-    newNode->dest = dest;
-    newNode->next = NULL;
-    return newNode;
-}
-
-// A utility function that creates a graph of V vertices
-struct Graph *createGraph(int numVertices)
-{
-    struct Graph *graph =
-        (struct Graph *)malloc(sizeof(struct Graph));
-    graph->numVertices = numVertices;
-
-    // Create an array of adjacency lists.  Size of
-    // array will be numVertices
-    graph->array =
-        (struct AdjList *)malloc(numVertices * sizeof(struct AdjList));
-
-    // Initialize each adjacency list as empty by
-    // making head as NULL
-    int i;
-    for (i = 0; i < numVertices; ++i)
-        graph->array[i].head = NULL;
-
-    return graph;
-}
-
-// Add edge to directed graph
-void addEdge(struct Graph *graph, int src, int dest)
-{
-    // Add an edge from src to dest.  A new node is
-    // added to the adjacency list of src.  The node
-    // is added at the beginning
-    struct AdjListNode *newNode = newAdjListNode(dest);
-    newNode->next = graph->array[src].head;
-    graph->array[src].head = newNode;
-}
-
-// A utility function to print the adjacency list
-// representation of graph
-void printGraph(struct Graph *graph)
-{
-    int v;
-    for (v = 0; v < graph->numVertices; ++v)
-    {
-        struct AdjListNode *pCrawl = graph->array[v].head;
-        printf("\n Adjacency list of vertex %d\n head ", v);
-        while (pCrawl)
-        {
-            printf("-> %d", pCrawl->dest);
-            pCrawl = pCrawl->next;
-        }
-        printf("\n");
-    }
-}
-
 // int **performFloydWarshall()
 // {
 //     int **distanceMatrix;
@@ -122,8 +39,6 @@ int main(int argc, char *argv[])
         // before our adjacency list
         getchar();
 
-        // struct Graph *graph = createGraph(orderOfGraph);
-
         int matrix[orderOfGraph][orderOfGraph];
         for (int i = 0; i < orderOfGraph; i++)
         {
@@ -148,7 +63,6 @@ int main(int argc, char *argv[])
             // walk through other neighbours
             while (token != NULL)
             {
-                // addEdge(graph, i, atoi(token));
                 int indexOfNeighbour = atoi(token);
                 matrix[i][indexOfNeighbour] = 1;
 
@@ -159,7 +73,6 @@ int main(int argc, char *argv[])
 
         // now we have a graph, we can perform this in parallel
         // findRadius(graph);
-        // printGraph(graph);
         for (int i = 0; i < orderOfGraph; i++)
         {
             for (int j = 0; j < orderOfGraph; j++)
