@@ -55,8 +55,8 @@ int findRadius(int **matrix, int order)
     }
 
     /* deallocate the array */
-    for (int i = 0; i < order; i++)
-        free(dist[i]);
+    // for (int i = 0; i < order; i++)
+    //     free(dist[i]);
     free(dist);
 
     return radius;
@@ -125,8 +125,8 @@ int main(int argc, char *argv[])
         output[numGraphs] = radius;
 
         // free memory
-        for (int i = 0; i < orderOfGraph; i++)
-            free(matrix[i]);
+        // for (int i = 0; i < orderOfGraph; i++)
+        //     free(matrix[i]);
         free(matrix);
 
         numGraphs++;
