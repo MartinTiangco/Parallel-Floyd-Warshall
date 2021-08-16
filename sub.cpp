@@ -1,25 +1,22 @@
 #include <iostream>
 #include <bits/stdc++.h>
+#include <list>
+#include <stack>
 using namespace std;
 
 #define high_val 9999;
 #define low_val -9999;
 
-#include <iostream>
-#include <list>
-#include <stack>
-using namespace std;
-
+// Adapted from https://www.geeksforgeeks.org/connectivity-in-a-directed-graph/
 class Graph
 {
     int V;          // No. of vertices
     list<int> *adj; // An array of adjacency lists
 
-    // A recursive function to print DFS starting from v
-    void DFSUtil(int v, bool visited[]);
+    // DFS starting from vertex v
+    void DFS(int v, bool visited[]);
 
 public:
-    // Constructor and Destructor
     Graph(int V)
     {
         this->V = V;
@@ -27,37 +24,34 @@ public:
     }
     ~Graph() { delete[] adj; }
 
-    // Method to add an edge
     void addEdge(int v, int w);
 
-    // The main function that returns true if the graph is strongly
-    // connected, otherwise false
-    bool isSC();
+    // If graph is strongly connected, return true. False otherwise.
+    bool isStronglyConnected();
 
-    // Function that returns reverse (or transpose) of this graph
+    // Returns reverse of the graph
     Graph getTranspose();
 };
 
-// A recursive function to print DFS starting from v
-void Graph::DFSUtil(int v, bool visited[])
+// DFS starting from vertex v
+void Graph::DFS(int v, bool visited[])
 {
-    // Mark the current node as visited and print it
+    // Current vertex is visited
     visited[v] = true;
 
-    // Recur for all the vertices adjacent to this vertex
+    // Recursion for adj vertices
     list<int>::iterator i;
     for (i = adj[v].begin(); i != adj[v].end(); ++i)
         if (!visited[*i])
-            DFSUtil(*i, visited);
+            DFS(*i, visited);
 }
 
-// Function that returns reverse (or transpose) of this graph
 Graph Graph::getTranspose()
 {
     Graph g(V);
     for (int v = 0; v < V; v++)
     {
-        // Recur for all the vertices adjacent to this vertex
+        // Recursion for adj vertices
         list<int>::iterator i;
         for (i = adj[v].begin(); i != adj[v].end(); ++i)
         {
@@ -69,38 +63,34 @@ Graph Graph::getTranspose()
 
 void Graph::addEdge(int v, int w)
 {
-    adj[v].push_back(w); // Add w to v’s list.
+    adj[v].push_back(w);
 }
 
-// The main function that returns true if graph is strongly connected
-bool Graph::isSC()
+bool Graph::isStronglyConnected()
 {
-    // St1p 1: Mark all the vertices as not visited (For first DFS)
+    // init visited values to be false
     bool visited[V];
     for (int i = 0; i < V; i++)
         visited[i] = false;
 
-    // Step 2: Do DFS traversal starting from first vertex.
-    DFSUtil(0, visited);
+    // DFS starting from first vertex.
+    DFS(0, visited);
 
-    // If DFS traversal doesn’t visit all vertices, then return false.
+    // If DFS doesn’t visit all vertices, return false.
     for (int i = 0; i < V; i++)
         if (visited[i] == false)
             return false;
 
-    // Step 3: Create a reversed graph
+    // Reverse the graph and repeat the steps performed before
     Graph gr = getTranspose();
 
-    // Step 4: Mark all the vertices as not visited (For second DFS)
     for (int i = 0; i < V; i++)
         visited[i] = false;
 
-    // Step 5: Do DFS for reversed graph starting from first vertex.
-    // Staring Vertex must be same starting point of first DFS
-    gr.DFSUtil(0, visited);
+    // Perform DFS from the same vertex as the first DFS
+    gr.DFS(0, visited);
 
-    // If all vertices are not visited in second DFS, then
-    // return false
+    // If DFS doesn't visit all vertices in reverse graph, return false
     for (int i = 0; i < V; i++)
         if (visited[i] == false)
             return false;
@@ -108,6 +98,7 @@ bool Graph::isSC()
     return true;
 }
 
+// Uses Floyd Warshall's Algorithm to find the radius of the graph.
 int findRadius(int **matrix, int order)
 {
     int floydWarshall[order][order];
@@ -134,28 +125,6 @@ int findRadius(int **matrix, int order)
         }
     }
 
-    // print matrix
-    // cout << "Initial Matrix \n";
-    // for (int i = 0; i < order; i++)
-    // {
-    //     for (int j = 0; j < order; j++)
-    //     {
-    //         cout << matrix[i][j] << "      ";
-    //     }
-    //     cout << "\n";
-    // }
-
-    // print matrix
-    // cout << "Floyd \n";
-    // for (int i = 0; i < order; i++)
-    // {
-    //     for (int j = 0; j < order; j++)
-    //     {
-    //         cout << floydWarshall[i][j] << "      ";
-    //     }
-    //     cout << "\n";
-    // }
-
     // Source: https://stackoverflow.com/questions/30592245/finding-radius-of-graph
     int radius = high_val;
     // for each vertex v
@@ -178,13 +147,8 @@ int findRadius(int **matrix, int order)
     return radius;
 }
 
-int main(int argc, char *argv[])
+int main()
 {
-    // there is a test file
-    if (argc == 2)
-    {
-    }
-
     int result[256];
     int numGraphs = 0;
 
@@ -248,7 +212,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        // check if graph is strongly connected
+        // first check if graph is strongly connected
         Graph graph(order);
         for (int i = 0; i < order; i++)
         {
@@ -261,15 +225,15 @@ int main(int argc, char *argv[])
             }
         }
 
-        if (graph.isSC())
+        if (graph.isStronglyConnected())
         {
             // find radius
             result[numGraphs] = findRadius(matrix, order);
         }
         else
         {
-            // result is "None"
-            result[numGraphs] = 999;
+            // result is "None" for non-strongly connected graphs
+            result[numGraphs] = -1;
         }
 
         // delete matrix
