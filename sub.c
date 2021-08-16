@@ -16,7 +16,7 @@ int findRadius(int **matrix, int order)
     // int dist[order][order];
     // allocate matrix
     int **dist;
-    dist = malloc(order & sizeof *dist);
+    dist = malloc(order * sizeof *dist);
     for (int i = 0; i < order; i++)
         dist[i] = malloc(order * sizeof *dist[i]);
 
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
         // allocate matrix
         int **matrix;
-        matrix = malloc(orderOfGraph & sizeof *matrix);
+        matrix = malloc(orderOfGraph * sizeof *matrix);
         for (int i = 0; i < orderOfGraph; i++)
             matrix[i] = malloc(orderOfGraph * sizeof *matrix[i]);
 
@@ -122,12 +122,12 @@ int main(int argc, char *argv[])
 
         // now we have a graph, we can perform this in parallel
         int radius = findRadius(matrix, orderOfGraph);
-        output[numGraphs] = radius;
-
         // free memory
-        // for (int i = 0; i < orderOfGraph; i++)
-        //     free(matrix[i]);
+        for (int i = 0; i < orderOfGraph; i++)
+            free(matrix[i]);
         free(matrix);
+
+        output[numGraphs] = radius;
 
         numGraphs++;
 
