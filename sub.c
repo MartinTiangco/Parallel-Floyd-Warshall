@@ -4,6 +4,8 @@
 #include <string.h>
 
 #define INF 999
+#define lowest_val -999
+#define highest_val 999
 #define max_int(x, y) (((x) >= (y)) ? (x) : (y))
 #define min_int(x, y) (((x) <= (y)) ? (x) : (y))
 
@@ -11,7 +13,12 @@ int findRadius(int **matrix, int order)
 {
     // This is the output matrix
     // with the shortest distances between every vertex pair
-    int dist[order][order];
+    // int dist[order][order];
+    // allocate matrix
+    int **dist;
+    dist = malloc(order & sizeof *dist);
+    for (int i = 0; i < order; i++)
+        dist[i] = malloc(order * sizeof *dist[i]);
 
     // init with adj matrix values
     for (int i = 0; i < order; i++)
@@ -35,17 +42,22 @@ int findRadius(int **matrix, int order)
         }
     }
 
-    int radius = INT_MAX;
+    int radius = highest_val;
     // for each vertex v
     for (int v = 0; v < order; v++)
     {
-        int eccentricity = INT_MIN;
+        int eccentricity = lowest_val;
         // for each vertex u
         for (int u = 0; u < order; u++)
             eccentricity = max_int(eccentricity, dist[v][u]);
 
         radius = min_int(radius, eccentricity);
     }
+
+    /* deallocate the array */
+    for (int i = 0; i < order; i++)
+        free(dist[i]);
+    free(dist);
 
     return radius;
 }
@@ -87,7 +99,7 @@ int main(int argc, char *argv[])
         // loop through each vertex
         for (int i = 0; i < orderOfGraph; i++)
         {
-            char neighbourList[50];
+            char neighbourList[30];
             char *token;
             char sep[2] = " ";
 
@@ -113,6 +125,8 @@ int main(int argc, char *argv[])
         output[numGraphs] = radius;
 
         // free memory
+        for (int i = 0; i < orderOfGraph; i++)
+            free(matrix[i]);
         free(matrix);
 
         numGraphs++;
