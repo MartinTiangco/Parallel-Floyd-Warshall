@@ -246,10 +246,10 @@ int main(int argc, char *argv[])
     // print results
     for (int i = 0; i < numGraphs; i++)
     {
-        if (result[i] == 999 || result[i] == -1)
-            printf("None\n");
+        if (result[i] == -1)
+            cout << "None\n";
         else
-            printf("%d\n", result[i]);
+            cout << result[i] << "\n";
     }
 
     // end timing
