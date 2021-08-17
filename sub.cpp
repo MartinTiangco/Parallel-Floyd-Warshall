@@ -102,7 +102,11 @@ bool Graph::isStronglyConnected()
 // Uses Floyd Warshall's Algorithm to find the radius of the graph.
 int findRadius(int **matrix, int order)
 {
-    int floydWarshall[order][order];
+    // declare matrix
+    int **floydWarshall;
+    floydWarshall = new int *[order];
+    for (int i = 0; i < order; i++)
+        floydWarshall[i] = new int[order];
 
     // init with adj matrix values
     for (int i = 0; i < order; i++)
@@ -138,6 +142,11 @@ int findRadius(int **matrix, int order)
 
         radius = min(radius, eccentricity);
     }
+
+    // delete matrix
+    for (int i = 0; i < order; i++)
+        delete[] floydWarshall[i];
+    delete[] floydWarshall;
 
     return radius;
 }
