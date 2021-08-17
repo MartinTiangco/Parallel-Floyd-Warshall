@@ -138,12 +138,6 @@ int findRadius(int **matrix, int order)
         radius = min(radius, eccentricity);
     }
 
-    // for single node graph
-    if (radius == 0)
-    {
-        radius = -1;
-    }
-
     return radius;
 }
 
