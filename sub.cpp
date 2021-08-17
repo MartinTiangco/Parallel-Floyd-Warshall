@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 #include <list>
 #include <stack>
+#include <chrono>
 using namespace std;
 
 #define high_val 9999;
@@ -141,10 +142,14 @@ int findRadius(int **matrix, int order)
     return radius;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+
     int result[256];
     int numGraphs = 0;
+
+    // for timing
+    auto start = chrono::high_resolution_clock::now();
 
     while (true)
     {
@@ -246,6 +251,12 @@ int main()
         else
             printf("%d\n", result[i]);
     }
+
+    // end timing
+    auto stop = chrono::high_resolution_clock::now();
+
+    auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+    cout << duration.count() << "\n";
 
     return 0;
 }
