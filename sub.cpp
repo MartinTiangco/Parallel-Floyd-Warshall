@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 #include <list>
 #include <stack>
-#include <chrono>
+#include <omp.h>
 using namespace std;
 
 #define high_val 9999;
@@ -71,32 +71,48 @@ bool Graph::isStronglyConnected()
 {
     // init visited values to be false
     bool visited[V];
-    for (int i = 0; i < V; i++)
-        visited[i] = false;
+    bool reverseVisited[V];
+    bool isStronglyConnected = true;
 
-    // DFS starting from first vertex.
-    DFS(0, visited);
+    // OpenMP section trialled here, but has no noticeable effect on performance. I removed
+    // them due to added overhead.
+    // #pragma omp sections
+    {
 
-    // If DFS doesn’t visit all vertices, return false.
-    for (int i = 0; i < V; i++)
-        if (visited[i] == false)
-            return false;
+        // #pragma omp section
+        {
+            for (int i = 0; i < V; i++)
+                visited[i] = false;
 
-    // Reverse the graph and repeat the steps performed before
-    Graph gr = getTranspose();
+            // DFS starting from first vertex.
+            DFS(0, visited);
 
-    for (int i = 0; i < V; i++)
-        visited[i] = false;
+            // If DFS doesn’t visit all vertices, return false.
+            for (int i = 0; i < V; i++)
+                if (visited[i] == false)
+                    // return false;
+                    isStronglyConnected = false;
+        }
 
-    // Perform DFS from the same vertex as the first DFS
-    gr.DFS(0, visited);
+        // #pragma omp section
+        {
+            // Reverse the graph and repeat the steps performed before
+            Graph gr = getTranspose();
 
-    // If DFS doesn't visit all vertices in reverse graph, return false
-    for (int i = 0; i < V; i++)
-        if (visited[i] == false)
-            return false;
+            for (int i = 0; i < V; i++)
+                reverseVisited[i] = false;
 
-    return true;
+            // Perform DFS from the same vertex as the first DFS
+            gr.DFS(0, reverseVisited);
+
+            // If DFS doesn't visit all vertices in reverse graph, return false
+            for (int i = 0; i < V; i++)
+                if (reverseVisited[i] == false)
+                    isStronglyConnected = false;
+        }
+
+        return isStronglyConnected;
+    }
 }
 
 // Uses Floyd Warshall's Algorithm to find the radius of the graph.
@@ -108,12 +124,14 @@ int findRadius(int **matrix, int order)
     for (int i = 0; i < order; i++)
         floydWarshall[i] = new int[order];
 
-    // init with adj matrix values
+// init with adj matrix values
+#pragma omp parallel for schedule(static, 2)
     for (int i = 0; i < order; i++)
         for (int j = 0; j < order; j++)
             floydWarshall[i][j] = matrix[i][j];
 
-    // find shortest distance using intermediate node k
+// find shortest distance using intermediate node k
+#pragma omp parallel for schedule(dynamic, 5)
     for (int k = 0; k < order; k++)
     {
         // source vertex i
@@ -125,12 +143,12 @@ int findRadius(int **matrix, int order)
                 // update dist if path through intermediate vertex k
                 // is shorter
                 if (floydWarshall[i][k] + floydWarshall[k][j] < floydWarshall[i][j])
+#pragma omp critical
                     floydWarshall[i][j] = floydWarshall[i][k] + floydWarshall[k][j];
             }
         }
     }
 
-    // Source: https://stackoverflow.com/questions/30592245/finding-radius-of-graph
     int radius = high_val;
     // for each vertex v
     for (int v = 0; v < order; v++)
@@ -143,7 +161,8 @@ int findRadius(int **matrix, int order)
         radius = min(radius, eccentricity);
     }
 
-    // delete matrix
+// delete matrix
+#pragma omp parallel for schedule(static, 2)
     for (int i = 0; i < order; i++)
         delete[] floydWarshall[i];
     delete[] floydWarshall;
@@ -156,9 +175,10 @@ int main(int argc, char *argv[])
 
     int result[256];
     int numGraphs = 0;
+    int numThreads = omp_get_num_threads();
 
     // for timing
-    auto start = chrono::high_resolution_clock::now();
+    double start = omp_get_wtime();
 
     while (true)
     {
@@ -178,12 +198,14 @@ int main(int argc, char *argv[])
         // declare matrix
         int **matrix;
         matrix = new int *[order];
+#pragma omp parallel for schedule(static, 3)
         for (int i = 0; i < order; i++)
             matrix[i] = new int[order];
 
-        // init matrix
-        // A vertex v to itself has 0 distance
-        // Otherwise, a large number representing infinite distance
+// init matrix
+// A vertex v to itself has 0 distance
+// Otherwise, a large number representing infinite distance
+#pragma omp parallel for schedule(static, 3)
         for (int i = 0; i < order; i++)
         {
             for (int j = 0; j < order; j++)
@@ -222,6 +244,7 @@ int main(int argc, char *argv[])
 
         // first check if graph is strongly connected
         Graph graph(order);
+#pragma omp parallel for schedule(static, 3)
         for (int i = 0; i < order; i++)
         {
             for (int j = 0; j < order; j++)
@@ -244,7 +267,8 @@ int main(int argc, char *argv[])
             result[numGraphs] = -1;
         }
 
-        // delete matrix
+// delete matrix
+#pragma omp parallel for schedule(static, 3)
         for (int i = 0; i < order; i++)
             delete[] matrix[i];
         delete[] matrix;
@@ -262,10 +286,10 @@ int main(int argc, char *argv[])
     }
 
     // end timing
-    auto stop = chrono::high_resolution_clock::now();
+    double end = omp_get_wtime();
 
-    auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-    cout << duration.count() << "\n";
+    // uncomment for timing
+    // cout << (end - start) << "\n";
 
     return 0;
 }

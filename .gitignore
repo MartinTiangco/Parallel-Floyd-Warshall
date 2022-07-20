@@ -1,1 +1,3 @@
 *.exe
+# exceeds GitHub's 100MB filesize limit
+sample-graphs/complete-5000.txt
